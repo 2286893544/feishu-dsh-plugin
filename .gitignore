@@ -1,9 +1,10 @@
-node_modules/
+﻿node_modules/
 *.tgz
 *.log
 .DS_Store
+
+# local-only material that must never be committed
 _private/
-*.pyc
-legacy-python/__pycache__/
-legacy-python/output/
 legacy-python/
+*.pyc
+__pycache__/
