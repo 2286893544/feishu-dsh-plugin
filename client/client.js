@@ -1,9 +1,13 @@
-// Client half of the settings-UI configuration: a card on
-// Settings → Plugins → Plugin configuration, keyed to the `feishu-bridge`
-// settings namespace the host half registers (lib/settings.js).
+// Client half of the Feishu plugin UI.
 //
-// Plain browser bundle — no build step. The harness loads client plugins through
-// the module loader below and calls `apply(ctx)` with the client context.
+// Registers two slots with the same credentials form:
+//   settings.section     -> a dedicated "飞书（Feishu）" page in the settings sidebar
+//   settings.plugin.item -> a card inside Settings → Plugins → Plugin configuration
+// Both write into the `feishu-bridge` settings namespace registered by lib/settings.js,
+// so a saved edit reaches the running plugin without a restart.
+//
+// Plain browser bundle — no build step. The harness loads client plugins through the
+// module loader below and calls `apply(ctx)` with the client context.
 
 window.__ModuleLoader__.load({
   id: "dsh-plugin-feishu",
@@ -21,6 +25,14 @@ window.__ModuleLoader__.load({
       { key: "appSecret", label: "应用密钥（appSecret）", secret: true, placeholder: "未配置" },
       { key: "tenantDomain", label: "企业域名（可选）", placeholder: "留空自动探测，例如 your-tenant.feishu.cn" },
       { key: "defaultChatId", label: "默认群 chat_id（可选）", placeholder: "oc_xxxxxxxxxxxx（会话工具不传 chat_id 时使用）" },
+    ];
+
+    const TOOL_GROUPS = [
+      { title: "会话与消息", count: 6, tools: "list_chats / list_chat_members / send_text / send_post_message / read_chat_history / recall_message" },
+      { title: "云文档 docx", count: 9, tools: "create_document / read_document / read_document_blocks / append_document_blocks / update_document_block / delete_document_block / insert_table_into_document / insert_image_into_document / insert_chart_into_document" },
+      { title: "多维表格 bitable", count: 5, tools: "create_bitable / list_bitable_tables / list_bitable_fields / write_bitable_record / read_bitable_records" },
+      { title: "电子表格 sheets", count: 2, tools: "read_sheet_range / write_sheet_range（经典 v2 区间接口）" },
+      { title: "权限", count: 1, tools: "grant_document_access" },
     ];
 
     const inputStyle = {
@@ -49,7 +61,10 @@ window.__ModuleLoader__.load({
       cursor: "pointer",
     });
 
-    /** Editable drafts: non-secret fields start from the stored values, secrets never do. */
+    const MUTED = { fontSize: "12px", color: "var(--dsw-alias-label-secondary)", lineHeight: "19px" };
+    const FAINT = { fontSize: "12px", color: "var(--dsw-alias-label-tertiary)", lineHeight: "19px" };
+
+    /** Drafts: non-secret fields start from the stored values; secrets never do. */
     function draftsFrom(value) {
       const next = {};
       for (const field of FIELDS) {
@@ -58,14 +73,15 @@ window.__ModuleLoader__.load({
       return next;
     }
 
-    /** Read the current settings snapshot (host-backed, secrets redacted). */
+    /** Subscribe to the host-backed settings snapshot (secrets already redacted). */
     function useSettingsSnapshot(scope) {
       const subscribe = React.useCallback((listener) => scope.subscribe(listener), [scope]);
       const getSnapshot = React.useCallback(() => scope.getSnapshot(), [scope]);
       return React.useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
     }
 
-    function FeishuSettingsCard(props) {
+    /** Credentials form: shared by the dedicated page and the plugin card. */
+    function FeishuSettingsForm(props) {
       const scope = props.scope;
       const snapshot = useSettingsSnapshot(scope);
       const value = snapshot?.value ?? {};
@@ -123,22 +139,12 @@ window.__ModuleLoader__.load({
 
       return h(
         "div",
-        { style: { display: "flex", flexDirection: "column", gap: "12px", padding: "16px" } },
-        h(
-          "div",
-          { style: { display: "flex", flexDirection: "column", gap: "4px" } },
-          h("div", { style: { fontSize: "15px", fontWeight: 600 } }, "飞书（Feishu）机器人"),
-          h(
-            "div",
-            { style: { fontSize: "12px", color: "var(--dsw-alias-label-secondary)", lineHeight: "19px" } },
-            "feishu_* 工具使用的企业自建应用凭据。修改后立即生效，无需重启。",
-          ),
-        ),
+        { style: { display: "flex", flexDirection: "column", gap: "12px" } },
         ...FIELDS.map((field) =>
           h(
             "label",
             { key: field.key, style: { display: "flex", flexDirection: "column", gap: "5px" } },
-            h("span", { style: { fontSize: "12px", color: "var(--dsw-alias-label-secondary)" } }, field.label),
+            h("span", { style: MUTED }, field.label),
             h("input", {
               type: field.secret ? "password" : "text",
               value: drafts[field.key] ?? "",
@@ -154,25 +160,84 @@ window.__ModuleLoader__.load({
         h(
           "div",
           { style: { display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" } },
-          h(
-            "button",
-            { type: "button", style: buttonStyle(true), disabled: !writable || busy, onClick: () => { save(); } },
-            busy ? "保存中…" : "保存",
-          ),
-          h(
-            "button",
-            { type: "button", style: buttonStyle(false), disabled: busy, onClick: discard },
-            "重置",
-          ),
-          message ? h("span", { style: { fontSize: "12px", color: "var(--dsw-alias-label-secondary)" } }, message) : null,
+          h("button", { type: "button", style: buttonStyle(true), disabled: !writable || busy, onClick: () => { save(); } }, busy ? "保存中…" : "保存"),
+          h("button", { type: "button", style: buttonStyle(false), disabled: busy, onClick: discard }, "重置"),
+          message ? h("span", { style: MUTED }, message) : null,
         ),
-        h("div", { style: { fontSize: "12px", color: "var(--dsw-alias-label-tertiary)", lineHeight: "19px" } }, statusText),
+        h("div", { style: FAINT }, statusText),
       );
     }
 
-    /** Client plugin entry: claim the namespace on the plugin configuration page. */
+    /** Card shown inside Settings → Plugins → Plugin configuration. */
+    function FeishuSettingsCard(props) {
+      return h(
+        "div",
+        { style: { display: "flex", flexDirection: "column", gap: "12px", padding: "16px" } },
+        h(
+          "div",
+          { style: { display: "flex", flexDirection: "column", gap: "4px" } },
+          h("div", { style: { fontSize: "15px", fontWeight: 600 } }, "飞书（Feishu）机器人"),
+          h("div", { style: MUTED }, "feishu_* 工具使用的企业自建应用凭据。修改后立即生效，无需重启。"),
+        ),
+        h(FeishuSettingsForm, { scope: props.scope }),
+      );
+    }
+
+    /** Dedicated settings page (sidebar entry), same form plus plugin reference. */
+    function FeishuSection(props) {
+      return h(
+        "div",
+        { style: { boxSizing: "border-box", maxWidth: "720px", display: "flex", flexDirection: "column", gap: "20px" } },
+        h(
+          "div",
+          { style: { display: "flex", flexDirection: "column", gap: "6px" } },
+          h("h2", { style: { margin: 0, fontSize: "20px", fontWeight: 600, lineHeight: "30px" } }, "飞书（Feishu）"),
+          h("p", { style: { margin: 0, ...MUTED } }, "通过企业自建应用操作飞书：群消息与聊天记录、云文档（含图表与图片）、多维表格、电子表格区间与文档授权。"),
+        ),
+        h(
+          "div",
+          { style: { border: "1px solid var(--dsw-alias-border-l2)", borderRadius: "14px", padding: "18px", display: "flex", flexDirection: "column", gap: "12px", background: "var(--dsw-alias-bg-module-platform)" } },
+          h("div", { style: { fontSize: "14px", fontWeight: 600 } }, "应用凭据"),
+          h(FeishuSettingsForm, { scope: props.scope }),
+        ),
+        h(
+          "div",
+          { style: { display: "flex", flexDirection: "column", gap: "8px" } },
+          h("div", { style: { fontSize: "14px", fontWeight: 600 } }, "工具清单（共 23 个）"),
+          ...TOOL_GROUPS.map((group) =>
+            h(
+              "div",
+              { key: group.title, style: { display: "flex", flexDirection: "column", gap: "2px" } },
+              h("div", { style: { fontSize: "13px" } }, `${group.title}（${group.count}）`),
+              h("div", { style: FAINT }, group.tools),
+            ),
+          ),
+        ),
+        h(
+          "div",
+          { style: { ...FAINT, borderTop: "1px solid var(--dsw-alias-border-l2)", paddingTop: "12px" } },
+          "前提：应用已开通并发布相应权限（读群历史、docx 读写、bitable、sheets、云文档授权等），机器人需在目标群内。图表标题与分类标签仅支持 ASCII；电子表格走经典 v2 区间接口。",
+        ),
+      );
+    }
+
+    /** Client plugin entry: a dedicated settings page plus the plugin-configuration card. */
     function apply(ctx) {
       const scope = ctx.settingsScope.bind({ namespace: NS });
+
+      ctx.slots.inject("settings.section", () =>
+        ctx.slots.register(
+          {
+            name: "settings.section",
+            id: "feishu",
+            order: 45,
+            label: () => "飞书（Feishu）",
+            inject: () => ({ scope }),
+          },
+          () => h(FeishuSection, { scope }),
+        ),
+      );
+
       ctx.slots.inject("settings.plugin.item", () =>
         ctx.slots.register(
           {
@@ -185,7 +250,9 @@ window.__ModuleLoader__.load({
       );
     }
 
-    const inject = ["@deepseek-ai/dsh-client-ui-settings"];
+    // Client-side services required before this bundle mounts (cordis fiber inject
+    // uses service names, not module ids — see dsh-client-ui-settings-plugins).
+    const inject = ["slots", "settingsScope"];
 
     exports.apply = apply;
     exports.inject = inject;

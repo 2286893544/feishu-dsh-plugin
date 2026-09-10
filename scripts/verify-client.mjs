@@ -79,7 +79,9 @@ const ctx = {
   },
   slots: {
     inject: (name, register) => {
-      if (name !== "settings.plugin.item") throw new Error(`unexpected slot "${name}"`);
+      if (name !== "settings.plugin.item" && name !== "settings.section") {
+        throw new Error(`unexpected slot "${name}"`);
+      }
       register();
     },
     register: (meta, render) => {
@@ -95,37 +97,69 @@ if (boundNamespace !== "feishu-bridge") {
   console.error("card did not bind the feishu-bridge settings namespace:", boundNamespace);
   process.exit(1);
 }
-if (registrations.length !== 1) {
-  console.error("expected exactly one settings card registration, got", registrations.length);
+if (registrations.length !== 2) {
+  console.error("expected a settings section and a plugin card, got", registrations.length, "registration(s)");
   process.exit(1);
 }
-const { meta, render } = registrations[0];
-if (meta.name !== "settings.plugin.item" || meta.key !== "feishu-bridge") {
-  console.error("card registration metadata is wrong:", JSON.stringify(meta));
+const section = registrations.find((entry) => entry.meta.name === "settings.section");
+const card = registrations.find((entry) => entry.meta.name === "settings.plugin.item");
+if (!section || !card) {
+  console.error("missing registration:", registrations.map((entry) => entry.meta.name).join(","));
+  process.exit(1);
+}
+if (section.meta.key !== undefined && section.meta.key !== "feishu-bridge") {
+  console.error("section is keyed to an unexpected namespace:", section.meta.key);
+  process.exit(1);
+}
+if (typeof section.meta.label !== "function" || section.meta.label().length === 0) {
+  console.error("section has no label resolver (the settings sidebar entry needs one)");
+  process.exit(1);
+}
+if (card.meta.key !== "feishu-bridge") {
+  console.error("plugin card key does not match the settings namespace:", card.meta.key);
   process.exit(1);
 }
 
-// ---- render the card ----
-const element = render();
-if (!element || typeof element.type !== "function") {
-  console.error("card render did not return a component element");
-  process.exit(1);
+// ---- render both surfaces ----
+/** Evaluate function components so nested elements (the shared form) are expanded. */
+function expand(node, depth = 0) {
+  if (!node || typeof node !== "object" || depth > 8) return node;
+  if (Array.isArray(node)) return node.map((child) => expand(child, depth));
+  if (typeof node.type === "function") return expand(node.type(node.props), depth + 1);
+  return { ...node, props: { ...node.props, children: expand(node.props?.children, depth) } };
 }
-const tree = element.type(element.props);
 
-const inputs = [];
-const walk = (node) => {
-  if (!node || typeof node !== "object") return;
-  if (Array.isArray(node)) return node.forEach(walk);
-  if (node.type === "input") inputs.push(node.props);
-  walk(node.props?.children);
-};
-walk(tree);
-
-if (inputs.length !== 4) {
-  console.error("expected 4 configuration inputs, got", inputs.length);
-  process.exit(1);
+function renderTree(entry) {
+  const element = entry.render();
+  if (!element || typeof element.type !== "function") {
+    console.error(`${entry.meta.name} render did not return a component element`);
+    process.exit(1);
+  }
+  return expand(element);
 }
+
+function collectInputs(node, found) {
+  if (!node || typeof node !== "object") return found;
+  if (Array.isArray(node)) {
+    for (const child of node) collectInputs(child, found);
+    return found;
+  }
+  if (node.type === "input") found.push(node.props);
+  collectInputs(node.props?.children, found);
+  return found;
+}
+
+const sectionInputs = collectInputs(renderTree(section), []);
+const cardInputs = collectInputs(renderTree(card), []);
+const inputs = cardInputs;
+
+for (const [surface, found] of [["settings.section", sectionInputs], ["settings.plugin.item", cardInputs]]) {
+  if (found.length !== 4) {
+    console.error(`${surface}: expected 4 configuration inputs, got`, found.length);
+    process.exit(1);
+  }
+}
+
 const secret = inputs.find((props) => props.type === "password");
 if (!secret) {
   console.error("appSecret input is not a password field");
@@ -146,6 +180,8 @@ if (appIdInput?.value !== "cli_from_settings") {
 }
 
 console.log("module id:", loaded.id);
-console.log("namespace:", boundNamespace, "| card key:", meta.key);
-console.log("inputs:", inputs.length, "(1 password)");
+console.log("namespace:", boundNamespace);
+console.log("registrations:", registrations.map((entry) => entry.meta.name).join(" + "));
+console.log("section label:", section.meta.label(), "| card key:", card.meta.key);
+console.log("inputs per surface:", sectionInputs.length, "/", cardInputs.length, "(1 password each)");
 console.log("CLIENT BUNDLE OK");

@@ -14,10 +14,11 @@ dsh plugin --profile web add dsh-plugin-feishu                  # once published
 dsh plugin --profile web add github:2286893544/feishu-dsh-plugin # straight from GitHub
 ```
 
-Reload the profile, then configure the plugin in the harness settings UI:
-**Settings → Plugins → Plugin configuration → 飞书（Feishu）机器人**. The card is
-shipped by the plugin's client half (`client/client.js`) and writes into its
-`feishu-bridge` settings namespace, so a saved change applies immediately:
+Reload the profile, then configure the plugin in the harness settings UI. The
+client half (`client/client.js`) contributes **both** a dedicated page in the
+settings sidebar (**Settings → 飞书（Feishu）**) and a card under
+**Settings → Plugins → Plugin configuration**; both write into the `feishu-bridge`
+settings namespace, so a saved change applies immediately:
 
 | Field | Meaning |
 |---|---|
