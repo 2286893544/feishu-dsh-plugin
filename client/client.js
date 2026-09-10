@@ -233,22 +233,7 @@ window.__ModuleLoader__.load({
       );
     }
 
-    /** Card shown inside Settings → Plugins → Plugin configuration. */
-    function FeishuSettingsCard(props) {
-      return h(
-        "div",
-        { style: { display: "flex", flexDirection: "column", gap: "12px", padding: "16px" } },
-        h(
-          "div",
-          { style: { display: "flex", flexDirection: "column", gap: "4px" } },
-          h("div", { style: { fontSize: "15px", fontWeight: 600 } }, "飞书（Feishu）机器人"),
-          h("div", { style: MUTED }, "feishu_* 工具使用的企业自建应用凭据。修改后立即生效，无需重启。"),
-        ),
-        h(FeishuSettingsForm, { scope: props.scope }),
-      );
-    }
-
-    /** Dedicated settings page (sidebar entry), same form plus plugin reference. */
+    /** Dedicated settings page (sidebar entry): credentials form plus a plugin reference. */
     function FeishuSection(props) {
       return h(
         "div",
@@ -286,7 +271,7 @@ window.__ModuleLoader__.load({
       );
     }
 
-    /** Client plugin entry: a dedicated settings page plus the plugin-configuration card. */
+    /** Client plugin entry: the dedicated "飞书（Feishu）" page in the settings sidebar. */
     function apply(ctx) {
       const scope = ctx.settingsScope.bind({ namespace: NS });
 
@@ -300,17 +285,6 @@ window.__ModuleLoader__.load({
             inject: () => ({ scope }),
           },
           () => h(FeishuSection, { scope }),
-        ),
-      );
-
-      ctx.slots.inject("settings.plugin.item", () =>
-        ctx.slots.register(
-          {
-            name: "settings.plugin.item",
-            key: NS,
-            inject: () => ({ scope }),
-          },
-          () => h(FeishuSettingsCard, { scope }),
         ),
       );
     }

@@ -97,26 +97,22 @@ if (boundNamespace !== "feishu-bridge") {
   console.error("card did not bind the feishu-bridge settings namespace:", boundNamespace);
   process.exit(1);
 }
-if (registrations.length !== 2) {
-  console.error("expected a settings section and a plugin card, got", registrations.length, "registration(s)");
+const names = registrations.map((entry) => entry.meta.name);
+if (names.includes("settings.plugin.item")) {
+  console.error("the plugin still registers a duplicate card in the Plugins tab:", names.join(","));
   process.exit(1);
 }
-const section = registrations.find((entry) => entry.meta.name === "settings.section");
-const card = registrations.find((entry) => entry.meta.name === "settings.plugin.item");
-if (!section || !card) {
-  console.error("missing registration:", registrations.map((entry) => entry.meta.name).join(","));
+if (registrations.length !== 1 || names[0] !== "settings.section") {
+  console.error("expected exactly one settings.section registration, got", names.join(",") || "(none)");
   process.exit(1);
 }
+const section = registrations[0];
 if (section.meta.key !== undefined && section.meta.key !== "feishu-bridge") {
   console.error("section is keyed to an unexpected namespace:", section.meta.key);
   process.exit(1);
 }
 if (typeof section.meta.label !== "function" || section.meta.label().length === 0) {
   console.error("section has no label resolver (the settings sidebar entry needs one)");
-  process.exit(1);
-}
-if (card.meta.key !== "feishu-bridge") {
-  console.error("plugin card key does not match the settings namespace:", card.meta.key);
   process.exit(1);
 }
 
@@ -149,15 +145,10 @@ function collectInputs(node, found) {
   return found;
 }
 
-const sectionInputs = collectInputs(renderTree(section), []);
-const cardInputs = collectInputs(renderTree(card), []);
-const inputs = cardInputs;
-
-for (const [surface, found] of [["settings.section", sectionInputs], ["settings.plugin.item", cardInputs]]) {
-  if (found.length !== 4) {
-    console.error(`${surface}: expected 4 configuration inputs, got`, found.length);
-    process.exit(1);
-  }
+const inputs = collectInputs(renderTree(section), []);
+if (inputs.length !== 4) {
+  console.error("settings.section: expected 4 configuration inputs, got", inputs.length);
+  process.exit(1);
 }
 
 const secret = inputs.find((props) => props.type === "password");
@@ -191,7 +182,7 @@ function collectButtons(node, found) {
   return found;
 }
 
-const buttons = collectButtons(renderTree(card), []);
+const buttons = collectButtons(renderTree(section), []);
 const testButton = buttons.find((props) => String(props.children) === "测试连接");
 if (!testButton) {
   console.error("the settings form has no 测试连接 button:", JSON.stringify(buttons.map((b) => b.children)));
@@ -236,8 +227,8 @@ if (testRequest.method !== "POST") {
 
 console.log("module id:", loaded.id);
 console.log("namespace:", boundNamespace);
-console.log("registrations:", registrations.map((entry) => entry.meta.name).join(" + "));
-console.log("section label:", section.meta.label(), "| card key:", card.meta.key);
-console.log("inputs per surface:", sectionInputs.length, "/", cardInputs.length, "(1 password each)");
+console.log("registrations:", registrations.map((entry) => entry.meta.name).join(" + "), "(no duplicate Plugins-tab card)");
+console.log("section label:", section.meta.label(), "| namespace:", boundNamespace);
+console.log("inputs:", inputs.length, "(1 password)");
 console.log("test button:", testButton.children, "->", testRequest.method, testRequest.url);
 console.log("CLIENT BUNDLE OK");
