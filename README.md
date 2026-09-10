@@ -15,18 +15,20 @@ dsh plugin --profile web add github:2286893544/feishu-dsh-plugin # straight from
 ```
 
 Reload the profile, then configure the plugin in the harness settings UI:
-**Settings → Plugins → Plugin configuration → dsh-plugin-feishu**. The form is
-generated from the plugin's `Config` schema:
+**Settings → Plugins → Plugin configuration → 飞书（Feishu）机器人**. The card is
+shipped by the plugin's client half (`client/client.js`) and writes into its
+`feishu-bridge` settings namespace, so a saved change applies immediately:
 
 | Field | Meaning |
 |---|---|
 | `appId` | Feishu app ID of your self-built app (`cli_...`) |
-| `appSecret` | Feishu app secret — marked `role("secret")`, so it is masked in the UI and stripped from remote settings reads |
+| `appSecret` | Feishu app secret — declared `role("secret")`, so it is redacted from every page read and shown as a password control that starts blank |
 | `tenantDomain` | Optional (`acme.feishu.cn`); auto-detected from the tenant API when empty |
 | `defaultChatId` | Optional (`oc_...`) used by the chat tools when a call omits `chat_id` |
 
-The values are stored in your local DeepSeek Harness profile configuration
-(plain text, on your machine only). Environment fallback for headless runs:
+On a host without a settings service the card is simply absent and the composed
+configuration stands. Both fallbacks remain: the profile patch entry
+(`config: { appId, appSecret, ... }`) and the environment variables
 `FEISHU_APP_ID`, `FEISHU_APP_SECRET`, `FEISHU_TENANT_DOMAIN`.
 
 ## Tools (23)

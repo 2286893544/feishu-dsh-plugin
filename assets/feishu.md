@@ -49,7 +49,7 @@
 | `feishu_grant_document_access` | 把文档/多维表格授权给用户（open_id，full_access） |
 
 ## 配置
-在**设置 → 插件 → 插件配置 → dsh-plugin-feishu** 中填写（表单由插件的 `Config` schema 自动生成）：
+在**设置 → 插件 → 插件配置 → 飞书（Feishu）机器人**中填写（卡片由插件客户端半边提供，保存后即时生效、无需重启）：
 - `appId`：企业自建应用 App ID（`cli_...`）
 - `appSecret`：应用密钥，标记为 `role("secret")`，界面用密码框显示，远程读取时会被脱敏
 - `tenantDomain`：**可选**。留空时插件自动调企业信息接口获取域名，用于拼文档/表格分享链接
