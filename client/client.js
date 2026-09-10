@@ -1,10 +1,10 @@
 // Client half of the Feishu plugin UI.
 //
-// Registers two slots with the same credentials form:
-//   settings.section     -> a dedicated "飞书（Feishu）" page in the settings sidebar
-//   settings.plugin.item -> a card inside Settings → Plugins → Plugin configuration
-// Both write into the `feishu-bridge` settings namespace registered by lib/settings.js,
-// so a saved edit reaches the running plugin without a restart.
+// Registers one slot: `settings.section`, the dedicated "飞书（Feishu）" page in the
+// settings sidebar (the same slot community plugins such as the side card use).
+// It writes into the `feishu-bridge` settings namespace registered by
+// lib/settings.js, so a saved edit reaches the running plugin without a restart.
+// The Plugins-tab card was deliberately dropped: one configuration surface, not two.
 //
 // Plain browser bundle — no build step. The harness loads client plugins through the
 // module loader below and calls `apply(ctx)` with the client context.
