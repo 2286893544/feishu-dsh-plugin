@@ -35,7 +35,7 @@ window.__ModuleLoader__.load({
       { title: "云文档 docx", count: 9, tools: "create_document / read_document / read_document_blocks / append_document_blocks / update_document_block / delete_document_block / insert_table_into_document / insert_image_into_document / insert_chart_into_document" },
       { title: "多维表格 bitable", count: 5, tools: "create_bitable / list_bitable_tables / list_bitable_fields / write_bitable_record / read_bitable_records" },
       { title: "电子表格 sheets", count: 2, tools: "read_sheet_range / write_sheet_range（经典 v2 区间接口）" },
-      { title: "权限", count: 1, tools: "grant_document_access" },
+      { title: "权限", count: 2, tools: "grant_document_access / set_document_link_sharing" },
     ];
 
     const inputStyle = {
@@ -268,7 +268,7 @@ window.__ModuleLoader__.load({
         h(
           "div",
           { style: { display: "flex", flexDirection: "column", gap: "8px" } },
-          h("div", { style: { fontSize: "14px", fontWeight: 600 } }, "工具清单（共 23 个）"),
+          h("div", { style: { fontSize: "14px", fontWeight: 600 } }, "工具清单（共 24 个）"),
           ...TOOL_GROUPS.map((group) =>
             h(
               "div",

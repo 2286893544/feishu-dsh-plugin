@@ -53,6 +53,7 @@ const expected = [
   "feishu_recall_message",
   "feishu_send_post_message",
   "feishu_send_text",
+  "feishu_set_document_link_sharing",
   "feishu_update_document_block",
   "feishu_write_bitable_record",
   "feishu_write_sheet_range",

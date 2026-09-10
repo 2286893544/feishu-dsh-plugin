@@ -9,8 +9,8 @@ url: https://github.com/2286893544/feishu-dsh-plugin
 name: 2286893544/feishu-dsh-plugin
 category: tools
 description:
-  en: 'Feishu (Lark) integration for DeepSeek Harness: 23 tools for chat messages and history, cloud documents (including generated charts, images and tables), bitable records, spreadsheet ranges and drive permissions, using your own enterprise self-built Feishu app.'
-  zh: '飞书（Lark）集成：23 个工具，覆盖群消息与聊天记录、云文档（含自动生成的图表与图片）、多维表格记录、电子表格区间读写与文档授权，基于企业自建应用。'
+  en: 'Feishu (Lark) integration for DeepSeek Harness: 24 tools for chat messages and history, cloud documents (including generated charts, images and tables), bitable records, spreadsheet ranges and drive permissions, using your own enterprise self-built Feishu app.'
+  zh: '飞书（Lark）集成：24 个工具，覆盖群消息与聊天记录、云文档（含自动生成的图表与图片）、多维表格记录、电子表格区间读写与文档授权，基于企业自建应用。'
 
 # 可选：预构建 tgz 挂在 GitHub Release 时（assets 名不带版本号更稳）
 # tarball: https://github.com/2286893544/feishu-dsh-plugin/releases/latest/download/dsh-plugin-feishu.tgz

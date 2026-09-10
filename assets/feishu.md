@@ -1,6 +1,6 @@
 # feishu — Feishu (Lark) 云文档 / 多维表格 / 电子表格 / 消息
 
-本技能启用插件的 23 个 `feishu_*` 工具，通过企业自建应用操作飞书开放平台。
+本技能启用插件的 24 个 `feishu_*` 工具，通过企业自建应用操作飞书开放平台。
 纯 Node 实现（无外部依赖），不需要 Python 或本地脚本。
 
 ## 工具清单（与插件描述、代码严格一致）
@@ -47,6 +47,7 @@
 | 工具 | 作用 |
 |---|---|
 | `feishu_grant_document_access` | 把文档/多维表格授权给用户（open_id，full_access） |
+| `feishu_set_document_link_sharing` | 设置链接分享（tenant_readable 等），让组织内成员凭链接即可打开 |
 
 ## 配置
 在**设置 → 插件 → 插件配置 → 飞书（Feishu）机器人**中填写（卡片由插件客户端半边提供，保存后即时生效、无需重启）：
@@ -60,7 +61,7 @@
 
 ## 常用流程
 1. **聊天记录**：`feishu_list_chats` 拿 chat_id → `feishu_read_chat_history` 读取 → 需要时整理成结论。
-2. **文档交付**：`feishu_create_document` → `feishu_append_document_blocks` / `feishu_insert_chart_into_document` → `feishu_list_chat_members` 取 open_id → `feishu_grant_document_access` → `feishu_send_post_message` 把标题与链接发进群。
+2. **文档交付**：`feishu_create_document` → `feishu_append_document_blocks` / `feishu_insert_chart_into_document` → `feishu_set_document_link_sharing`（让组织内成员凭链接可读）→ 需要指定人协作时 `feishu_list_chat_members` 取 open_id → `feishu_grant_document_access` → `feishu_send_post_message` 把标题与链接发进群。
 3. **表格数据**：`feishu_create_bitable` → `feishu_list_bitable_tables` 取 table_id → `feishu_list_bitable_fields` 看字段 → `feishu_write_bitable_record` / `feishu_read_bitable_records`。
 4. **电子表格**：直接从表格链接取 token，用 `feishu_read_sheet_range` / `feishu_write_sheet_range` 读写区间。
 5. **误发补救**：`feishu_recall_message` 撤回机器人刚发的消息。

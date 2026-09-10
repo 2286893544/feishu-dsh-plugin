@@ -1,6 +1,6 @@
 # dsh-plugin-feishu
 
-Feishu (Lark) tools for DeepSeek Harness: **23 `feishu_*` tools** covering chat
+Feishu (Lark) tools for DeepSeek Harness: **24 `feishu_*` tools** covering chat
 messages, cloud documents (including images, generated charts and tables),
 bitable records, spreadsheet ranges and drive permissions — through your own
 enterprise self-built Feishu app. Pure Node, no external dependencies, no Python.
@@ -39,7 +39,7 @@ app name, the tenant name and domain, a masked key fingerprint
 (`pkQi…E2h (len 32)`) and which configuration layers supplied the values. The raw
 secret never leaves the host, and the route refuses GETs and cross-origin calls.
 
-## Tools (23)
+## Tools (24)
 
 **Chat & messages** — `feishu_list_chats`, `feishu_list_chat_members`,
 `feishu_send_text`, `feishu_send_post_message`, `feishu_read_chat_history`,
@@ -84,7 +84,7 @@ A bundled `feishu` skill documents the workflows and known limits for the agent.
 ## Development
 
 ```sh
-node scripts/verify-registration.mjs   # offline: registers 23 tools + skill, renders a chart
+node scripts/verify-registration.mjs   # offline: registers 24 tools + skill, renders a chart
 node scripts/smoke.mjs                 # live API check (needs credentials; optional doc id)
 ```
 
