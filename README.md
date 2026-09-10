@@ -1,21 +1,21 @@
 # dsh-plugin-feishu
 
-Feishu (Lark) tools for DeepSeek Harness: send messages, read chat history,
-create / read / append Feishu cloud documents, and grant document access —
-all through your enterprise self-built Feishu app. Pure Node, no Python needed.
+Feishu (Lark) tools for DeepSeek Harness: **23 `feishu_*` tools** covering chat
+messages, cloud documents (including images, generated charts and tables),
+bitable records, spreadsheet ranges and drive permissions — through your own
+enterprise self-built Feishu app. Pure Node, no external dependencies, no Python.
 
 ## Install
 
 Requires DeepSeek Harness with plugin support (`dsh plugin`).
 
 ```sh
-dsh plugin --profile web add dsh-plugin-feishu     # once published to npm
-# or from source / GitHub:
-dsh plugin --profile web add github:<owner>/feishu-dsh-plugin
+dsh plugin --profile web add dsh-plugin-feishu                  # once published to npm
+dsh plugin --profile web add github:2286893544/feishu-dsh-plugin # straight from GitHub
 ```
 
-Restart / reload the profile, then set plugin configuration
-(Settings → Plugins → Plugin configuration, or profile patch):
+Reload the profile, then configure the plugin (Settings → Plugins → Plugin
+configuration, or the profile patch):
 
 ```yaml
 - insert:
@@ -24,39 +24,59 @@ Restart / reload the profile, then set plugin configuration
       config:
         appId: cli_xxxxxxxx
         appSecret: xxxxxxxxxxxxxxxx
-        tenantDomain: your-tenant.feishu.cn   # optional: used to build shareable doc links
+        tenantDomain: your-tenant.feishu.cn   # optional: auto-detected when omitted
 ```
 
-Environment variable fallback: `FEISHU_APP_ID`, `FEISHU_APP_SECRET`, `FEISHU_TENANT_DOMAIN`.
+Environment fallback: `FEISHU_APP_ID`, `FEISHU_APP_SECRET`, `FEISHU_TENANT_DOMAIN`.
 
-## Tools
+## Tools (23)
 
-- `feishu_list_chats` — chats the bot is in
-- `feishu_send_text` — send a text message to a chat
-- `feishu_read_chat_history` — recent messages of a chat
-- `feishu_create_document` — create a docx with title + paragraphs
-- `feishu_read_document` — read docx plain text
-- `feishu_append_document_blocks` — append paragraphs / headings
-- `feishu_grant_document_access` — grant a user full access (docx / bitable)
+**Chat & messages** — `feishu_list_chats`, `feishu_list_chat_members`,
+`feishu_send_text`, `feishu_send_post_message`, `feishu_read_chat_history`,
+`feishu_recall_message`
 
-A bundled `feishu` skill documents workflows and configuration.
+**Documents (docx)** — `feishu_create_document`, `feishu_read_document`,
+`feishu_read_document_blocks`, `feishu_append_document_blocks`,
+`feishu_update_document_block`, `feishu_delete_document_block`,
+`feishu_insert_table_into_document`, `feishu_insert_image_into_document`,
+`feishu_insert_chart_into_document`
+
+**Bitable** — `feishu_create_bitable`, `feishu_list_bitable_tables`,
+`feishu_list_bitable_fields`, `feishu_write_bitable_record`,
+`feishu_read_bitable_records`
+
+**Sheets (classic v2 range API)** — `feishu_read_sheet_range`,
+`feishu_write_sheet_range`
+
+**Permissions** — `feishu_grant_document_access`
+
+A bundled `feishu` skill documents the workflows and known limits for the agent.
+
+## Notes and limits
+
+- Charts are rendered locally (pure Node PNG encoder + 5×7 ASCII font); chart
+  titles and category labels are ASCII-only — non-ASCII characters are dropped.
+  For Chinese labels, generate the image yourself and use
+  `feishu_insert_image_into_document`.
+- Spreadsheet tools use the classic sheets v2 range API.
+- Only chats the bot belongs to can be read; other users' private chats are not
+  accessible through the Feishu API.
 
 ## Prerequisites (Feishu side)
 
-- Enterprise self-built app with bot enabled (developer console).
-- Published scopes: reading group history (`im:message.group_msg` etc.),
-  docx document read/write, drive permission management — plus the bot added
-  to target chats and docs/bitables it must read.
+- Enterprise self-built app with the bot enabled.
+- Published scopes for reading chat history (`im:message.group_msg` …), docx
+  read/write, bitable, sheets and drive permission management; the bot must be a
+  member of the target chats, and documents the app must read must be shared
+  with it.
 - Credentials stay local; never share `appSecret` in chat or documents.
 
 ## Development
 
 ```sh
-node scripts/smoke.mjs            # exercises lib/client.js against real API
+node scripts/verify-registration.mjs   # offline: registers 23 tools + skill, renders a chart
+node scripts/smoke.mjs                 # live API check (needs credentials; optional doc id)
 ```
-
-Roadmap: bitable record read/write, sheets, in-doc chart/image blocks,
-proactive scheduled messages.
 
 ## License
 

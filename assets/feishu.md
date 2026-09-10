@@ -1,32 +1,70 @@
-# feishu — Feishu (Lark) 云文档 / 消息 / 群记录操作
+# feishu — Feishu (Lark) 云文档 / 多维表格 / 电子表格 / 消息
 
-本技能启用插件的 `feishu_*` 工具，通过企业自建应用操作飞书开放平台。
-纯 Node 实现，不需要 Python 或本地脚本。
+本技能启用插件的 23 个 `feishu_*` 工具，通过企业自建应用操作飞书开放平台。
+纯 Node 实现（无外部依赖），不需要 Python 或本地脚本。
 
-## 能力清单（工具即能力，与插件描述一致）
+## 工具清单（与插件描述、代码严格一致）
 
+**会话与消息**
 | 工具 | 作用 |
 |---|---|
 | `feishu_list_chats` | 列出机器人所在群/会话（chat_id + 名称） |
-| `feishu_send_text` | 向群/会话发送文本消息 |
-| `feishu_read_chat_history` | 读取群最近消息（按时间正序） |
-| `feishu_create_document` | 新建云文档（标题 + 段落），返回 document_id 与 url（配了 tenantDomain 时） |
-| `feishu_read_document` | 读取云文档纯文本 |
-| `feishu_append_document_blocks` | 向已有文档追加段落/一级标题 |
-| `feishu_grant_document_access` | 把文档/多维表格授权给指定用户（open_id，full_access） |
+| `feishu_list_chat_members` | 列出群成员（open_id + 姓名），用于授权文档 |
+| `feishu_send_text` | 发送文本消息 |
+| `feishu_send_post_message` | 发送富文本（post）消息：标题 + 多行正文 |
+| `feishu_read_chat_history` | 读取群最近消息（时间正序） |
+| `feishu_recall_message` | 撤回机器人自己发出的消息 |
 
-## 配置要求（安装插件时一次性完成）
-在 profile 的插件配置中提供：
-- `appId` / `appSecret`：飞书开放平台企业自建应用的凭据（可用环境变量 `FEISHU_APP_ID` / `FEISHU_APP_SECRET` 代替）
-- `tenantDomain`（可选，形如 `xxx.feishu.cn`）：用于拼文档分享链接
-- 权限前提：应用已开通相应 scope（读群历史 `im:message.group_msg`、docx 读写、drive 授权等）并发布；机器人需在目标群内。
+**云文档 docx**
+| 工具 | 作用 |
+|---|---|
+| `feishu_create_document` | 新建文档（标题 + 段落），返回 document_id 与分享链接 |
+| `feishu_read_document` | 读取文档纯文本 |
+| `feishu_read_document_blocks` | 读取块结构（block_id / 类型 / 文本 / 图片 token / 表格尺寸） |
+| `feishu_append_document_blocks` | 追加块：text / heading1 / heading2 / bullet / quote |
+| `feishu_update_document_block` | 按 block_id 改写某个块的文本 |
+| `feishu_delete_document_block` | 按 block_id 删除块 |
+| `feishu_insert_table_into_document` | 插入 N×M 空表格 |
+| `feishu_insert_image_into_document` | 插入图片：本地路径 / https URL / base64 |
+| `feishu_insert_chart_into_document` | 本地渲染柱状图并插入文档（标题与分类标签仅支持 ASCII） |
+
+**多维表格 bitable**
+| 工具 | 作用 |
+|---|---|
+| `feishu_create_bitable` | 新建多维表格，返回 app_token 与链接 |
+| `feishu_list_bitable_tables` | 列出数据表 |
+| `feishu_list_bitable_fields` | 列出字段（field_id / 名称 / 类型） |
+| `feishu_write_bitable_record` | 写入一条记录（字段名 → 值） |
+| `feishu_read_bitable_records` | 读取记录 |
+
+**电子表格 sheets（经典 v2 range API）**
+| 工具 | 作用 |
+|---|---|
+| `feishu_read_sheet_range` | 读取区间，如 `<sheetId>!A1:C5` |
+| `feishu_write_sheet_range` | 写入二维数组到区间 |
+
+**权限**
+| 工具 | 作用 |
+|---|---|
+| `feishu_grant_document_access` | 把文档/多维表格授权给用户（open_id，full_access） |
+
+## 配置
+- `appId` / `appSecret`：企业自建应用凭据（可用环境变量 `FEISHU_APP_ID` / `FEISHU_APP_SECRET`）
+- `tenantDomain`：**可选**。不填时插件会自动调用企业信息接口获取域名，用于拼文档/表格分享链接
+- 权限前提：应用已开通并发布相应 scope（读群历史 `im:message.group_msg`、docx 读写、bitable、sheets、drive 授权等），机器人需在目标群内
 
 ## 常用流程
-1. 「看看这个群里最近聊了什么」→ `feishu_read_chat_history`（chat_id 可从 `feishu_list_chats` 拿）。
-2. 「把这段内容整理成文档发到群里」→ `feishu_create_document` →（如需用户可见）`feishu_grant_document_access` → `feishu_send_text` 把文档标题与 url 发进群。
-3. 「读一下这篇文档」→ 从用户提供的链接中提取 document_id → `feishu_read_document`。
-4. 「在文档末尾补一段」→ `feishu_append_document_blocks`。
+1. **聊天记录**：`feishu_list_chats` 拿 chat_id → `feishu_read_chat_history` 读取 → 需要时整理成结论。
+2. **文档交付**：`feishu_create_document` → `feishu_append_document_blocks` / `feishu_insert_chart_into_document` → `feishu_list_chat_members` 取 open_id → `feishu_grant_document_access` → `feishu_send_post_message` 把标题与链接发进群。
+3. **表格数据**：`feishu_create_bitable` → `feishu_list_bitable_tables` 取 table_id → `feishu_list_bitable_fields` 看字段 → `feishu_write_bitable_record` / `feishu_read_bitable_records`。
+4. **电子表格**：直接从表格链接取 token，用 `feishu_read_sheet_range` / `feishu_write_sheet_range` 读写区间。
+5. **误发补救**：`feishu_recall_message` 撤回机器人刚发的消息。
+
+## 已知限制
+- 柱状图的标题与分类标签使用内置 5×7 ASCII 字体，**非 ASCII 字符会被丢弃**；需要中文标签时改为用 `feishu_insert_image_into_document` 传入已生成好的图片。
+- 电子表格工具使用经典 v2 range 接口；新版 sheets v3 接口未覆盖。
+- 只能读取机器人所在群的消息；无法读取他人私聊（飞书平台限制）。
 
 ## 安全约定
-- App Secret 只放在本机插件配置/环境变量中，绝不写进对话或文档。
-- 工具执行是“对话内按需”，不是常驻机器人；不做自动回复。
+- App Secret 只放在本机插件配置/环境变量，绝不写进对话或文档。
+- 工具是「对话内按需调用」，不做常驻自动回复。
