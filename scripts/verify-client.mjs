@@ -169,8 +169,8 @@ if (secret.value !== "") {
   console.error("secret field must never be pre-filled with a stored value");
   process.exit(1);
 }
-if (!/已配置/.test(String(secret.placeholder))) {
-  console.error("secret placeholder does not report the configured state:", secret.placeholder);
+if (!/留空表示不修改/.test(String(secret.placeholder))) {
+  console.error("secret placeholder does not explain that a blank field keeps the stored key:", secret.placeholder);
   process.exit(1);
 }
 const appIdInput = inputs.find((props) => props.type === "text");

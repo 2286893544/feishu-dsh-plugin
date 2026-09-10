@@ -85,8 +85,6 @@ window.__ModuleLoader__.load({
       const scope = props.scope;
       const snapshot = useSettingsSnapshot(scope);
       const value = snapshot?.value ?? {};
-      const secrets = Array.isArray(snapshot?.secrets) ? snapshot.secrets : [];
-      const secretSet = secrets.some((entry) => entry?.set && entry.path?.[0] === "appSecret");
       const writable = snapshot?.writable !== false;
       const ready = snapshot?.status === "ready" || snapshot?.status === "loaded";
 
@@ -148,7 +146,10 @@ window.__ModuleLoader__.load({
             h("input", {
               type: field.secret ? "password" : "text",
               value: drafts[field.key] ?? "",
-              placeholder: field.secret && secretSet ? "已配置（留空表示不修改）" : field.placeholder,
+              // The settings service never reports whether a secret is set through a
+              // read (that would be a disclosure), so the placeholder stays neutral
+              // rather than guessing "未配置".
+              placeholder: field.secret ? "已保存的密钥不会回显；留空表示不修改" : field.placeholder,
               autoComplete: "off",
               spellCheck: false,
               disabled: !writable || busy,
