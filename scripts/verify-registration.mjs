@@ -1,7 +1,7 @@
 // Offline registration test: loads the plugin with a stub cordis context and asserts
 // that it registers the expected tools, the bundled skill provider, and that the
 // built-in PNG/chart renderer produces a valid PNG. Run: node scripts/verify-registration.mjs
-import { apply, inject, name } from "../lib/index.js";
+import { apply, inject, name, Config } from "../lib/index.js";
 import { renderBarChart } from "../lib/png.js";
 
 const registeredTools = [];
@@ -82,6 +82,23 @@ if (png.length < 500 || !png.subarray(0, 4).equals(signature)) {
   process.exit(1);
 }
 
+// settings-UI configuration: Config must exist and validate a sample value
+if (!Config || typeof Config !== "function") {
+  console.error("plugin does not export a Config schema for the settings UI");
+  process.exit(1);
+}
+const parsedConfig = Config({ appId: "cli_test", appSecret: "secret", tenantDomain: "", defaultChatId: "oc_test" });
+if (parsedConfig?.appId !== "cli_test" || parsedConfig?.defaultChatId !== "oc_test") {
+  console.error("Config did not round-trip the sample value:", JSON.stringify(parsedConfig));
+  process.exit(1);
+}
+const sendText = registeredTools.find((t) => t.name === "feishu_send_text");
+if (sendText?.parameters?.required?.includes("chat_id")) {
+  console.error("feishu_send_text still requires chat_id; the defaultChatId fallback would never apply");
+  process.exit(1);
+}
+
+console.log("config schema:", Object.keys(parsedConfig).join(","));
 console.log("skill:", candidates[0].name, "| body bytes:", skillBody.content.length);
 console.log("chart png bytes:", png.length);
 console.log("REGISTRATION OK");

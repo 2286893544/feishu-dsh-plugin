@@ -49,8 +49,12 @@
 | `feishu_grant_document_access` | 把文档/多维表格授权给用户（open_id，full_access） |
 
 ## 配置
-- `appId` / `appSecret`：企业自建应用凭据（可用环境变量 `FEISHU_APP_ID` / `FEISHU_APP_SECRET`）
-- `tenantDomain`：**可选**。不填时插件会自动调用企业信息接口获取域名，用于拼文档/表格分享链接
+在**设置 → 插件 → 插件配置 → dsh-plugin-feishu** 中填写（表单由插件的 `Config` schema 自动生成）：
+- `appId`：企业自建应用 App ID（`cli_...`）
+- `appSecret`：应用密钥，标记为 `role("secret")`，界面用密码框显示，远程读取时会被脱敏
+- `tenantDomain`：**可选**。留空时插件自动调企业信息接口获取域名，用于拼文档/表格分享链接
+- `defaultChatId`：**可选**。会话类工具不传 `chat_id` 时使用该默认群
+- 无界面场景可用环境变量 `FEISHU_APP_ID` / `FEISHU_APP_SECRET` / `FEISHU_TENANT_DOMAIN`
 - 权限前提：应用已开通并发布相应 scope（读群历史 `im:message.group_msg`、docx 读写、bitable、sheets、drive 授权等），机器人需在目标群内
 
 ## 常用流程
