@@ -32,6 +32,13 @@ configuration stands. Both fallbacks remain: the profile patch entry
 (`config: { appId, appSecret, ... }`) and the environment variables
 `FEISHU_APP_ID`, `FEISHU_APP_SECRET`, `FEISHU_TENANT_DOMAIN`.
 
+The page also carries a **测试连接 (test connection)** button. It POSTs to the
+host route `/dsh-plugin-feishu/test-connection`, which exercises the stored
+credentials against the Feishu API and answers with non-secret facts only: the
+app name, the tenant name and domain, a masked key fingerprint
+(`pkQi…E2h (len 32)`) and which configuration layers supplied the values. The raw
+secret never leaves the host, and the route refuses GETs and cross-origin calls.
+
 ## Tools (23)
 
 **Chat & messages** — `feishu_list_chats`, `feishu_list_chat_members`,

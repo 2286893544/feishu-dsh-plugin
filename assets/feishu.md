@@ -55,6 +55,7 @@
 - `tenantDomain`：**可选**。留空时插件自动调企业信息接口获取域名，用于拼文档/表格分享链接
 - `defaultChatId`：**可选**。会话类工具不传 `chat_id` 时使用该默认群
 - 无界面场景可用环境变量 `FEISHU_APP_ID` / `FEISHU_APP_SECRET` / `FEISHU_TENANT_DOMAIN`
+- 页面上的**「测试连接」**按钮会用已保存的凭据真实调一次飞书接口，返回应用名、企业域名、密钥掩码指纹与配置来源；失败时给出具体错误码（如 10003 = App ID 与密钥不匹配）。密钥不会离开宿主，也不会回显到页面。
 - 权限前提：应用已开通并发布相应 scope（读群历史 `im:message.group_msg`、docx 读写、bitable、sheets、drive 授权等），机器人需在目标群内
 
 ## 常用流程

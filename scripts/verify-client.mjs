@@ -179,9 +179,65 @@ if (appIdInput?.value !== "cli_from_settings") {
   process.exit(1);
 }
 
+// ---- "test connection" button talks to the host route ----
+function collectButtons(node, found) {
+  if (!node || typeof node !== "object") return found;
+  if (Array.isArray(node)) {
+    for (const child of node) collectButtons(child, found);
+    return found;
+  }
+  if (node.type === "button") found.push(node.props);
+  collectButtons(node.props?.children, found);
+  return found;
+}
+
+const buttons = collectButtons(renderTree(card), []);
+const testButton = buttons.find((props) => String(props.children) === "测试连接");
+if (!testButton) {
+  console.error("the settings form has no 测试连接 button:", JSON.stringify(buttons.map((b) => b.children)));
+  process.exit(1);
+}
+
+const realFetch = globalThis.fetch;
+const requests = [];
+globalThis.fetch = async (url, init) => {
+  requests.push({ url: String(url), method: init?.method ?? "GET" });
+  return {
+    ok: true,
+    status: 200,
+    async json() {
+      return {
+        ok: true,
+        appId: "cli_from_settings",
+        secretFingerprint: "secr…nly (len 16)",
+        botName: "测试机器人",
+        tenantName: "测试企业",
+        tenantDomain: "acme.feishu.cn",
+        sources: { environment: false, profileConfig: true },
+      };
+    },
+  };
+};
+try {
+  await testButton.onClick();
+  await new Promise((resolve) => setTimeout(resolve, 20));
+} finally {
+  globalThis.fetch = realFetch;
+}
+const testRequest = requests.find((entry) => entry.url.includes("/dsh-plugin-feishu/test-connection"));
+if (!testRequest) {
+  console.error("测试连接 did not call the host route:", JSON.stringify(requests));
+  process.exit(1);
+}
+if (testRequest.method !== "POST") {
+  console.error("测试连接 must POST (the same-origin guard expects POST), got", testRequest.method);
+  process.exit(1);
+}
+
 console.log("module id:", loaded.id);
 console.log("namespace:", boundNamespace);
 console.log("registrations:", registrations.map((entry) => entry.meta.name).join(" + "));
 console.log("section label:", section.meta.label(), "| card key:", card.meta.key);
 console.log("inputs per surface:", sectionInputs.length, "/", cardInputs.length, "(1 password each)");
+console.log("test button:", testButton.children, "->", testRequest.method, testRequest.url);
 console.log("CLIENT BUNDLE OK");

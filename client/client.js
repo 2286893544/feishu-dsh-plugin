@@ -17,6 +17,9 @@ window.__ModuleLoader__.load({
     const React = require("react");
     const h = React.createElement;
 
+    /** Must match lib/routes.js. */
+    const TEST_PATH = "/dsh-plugin-feishu/test-connection";
+
     /** Must match lib/settings.js. */
     const NS = "feishu-bridge";
 
@@ -91,6 +94,8 @@ window.__ModuleLoader__.load({
       const [drafts, setDrafts] = React.useState(() => draftsFrom(value));
       const [busy, setBusy] = React.useState(false);
       const [message, setMessage] = React.useState("");
+      const [testing, setTesting] = React.useState(false);
+      const [testLines, setTestLines] = React.useState([]);
 
       React.useEffect(() => {
         setDrafts(draftsFrom(value));
@@ -135,6 +140,44 @@ window.__ModuleLoader__.load({
           ? "密钥保存在本机 profile 设置中，页面不会回显已存密钥。"
           : "当前部署不可写（配置由 profile 文件提供）。";
 
+      /** Ask the host to exercise the stored credentials; only non-secret facts come back. */
+      async function runTest() {
+        setTesting(true);
+        setTestLines(["正在连接飞书…"]);
+        try {
+          const response = await fetch(TEST_PATH, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: "{}",
+            cache: "no-store",
+          });
+          const body = await response.json().catch(() => ({}));
+          if (!response.ok || body.ok !== true) {
+            setTestLines([
+              "❌ 连接失败",
+              String(body.error ?? `HTTP ${response.status}`),
+              body.code === undefined ? "" : `错误码：${body.code}`,
+            ].filter(Boolean));
+            return;
+          }
+          const sources = [];
+          if (body.sources?.environment) sources.push("环境变量");
+          if (body.sources?.profileConfig) sources.push("profile 配置");
+          setTestLines([
+            "✅ 连接成功",
+            `应用：${body.botName ?? "(未返回)"}`,
+            `企业：${body.tenantName ?? "(未知)"}（${body.tenantDomain ?? "域名未知"}）`,
+            `应用 ID：${body.appId ?? "(未设置)"}`,
+            `密钥指纹：${body.secretFingerprint ?? "(未设置)"}`,
+            `配置来源：${sources.length > 0 ? sources.join(" + ") : "设置界面"}`,
+          ]);
+        } catch (err) {
+          setTestLines(["❌ 测试请求失败", String(err?.message ?? err)]);
+        } finally {
+          setTesting(false);
+        }
+      }
+
       return h(
         "div",
         { style: { display: "flex", flexDirection: "column", gap: "12px" } },
@@ -163,8 +206,29 @@ window.__ModuleLoader__.load({
           { style: { display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" } },
           h("button", { type: "button", style: buttonStyle(true), disabled: !writable || busy, onClick: () => { save(); } }, busy ? "保存中…" : "保存"),
           h("button", { type: "button", style: buttonStyle(false), disabled: busy, onClick: discard }, "重置"),
+          h("button", { type: "button", style: buttonStyle(false), disabled: testing, onClick: () => { runTest(); } }, testing ? "测试中…" : "测试连接"),
           message ? h("span", { style: MUTED }, message) : null,
         ),
+        testLines.length > 0
+          ? h(
+              "div",
+              {
+                style: {
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "3px",
+                  padding: "10px 12px",
+                  borderRadius: "10px",
+                  background: "var(--dsw-alias-bg-layer-1)",
+                  border: "1px solid var(--dsw-alias-border-l2)",
+                  fontSize: "12px",
+                  lineHeight: "20px",
+                  whiteSpace: "pre-wrap",
+                },
+              },
+              ...testLines.map((line, index) => h("div", { key: index }, line)),
+            )
+          : null,
         h("div", { style: FAINT }, statusText),
       );
     }
