@@ -1,0 +1,16 @@
+# 投稿文件（awesome-dsh-plugin）
+# 放到 fork 仓库的：data/plugins/2286893544__feishu-dsh-plugin.yml
+# 文件名规则：<owner>__<repo>.yml（两个下划线）
+#
+# 已按你的 GitHub 账号 2286893544 与仓库名 feishu-dsh-plugin 填好。
+# 提交前请确认仓库地址与 url 完全一致。
+
+url: https://github.com/2286893544/feishu-dsh-plugin
+name: 2286893544/feishu-dsh-plugin
+category: tools
+description:
+  en: Feishu (Lark) tools for DeepSeek Harness — send messages, read chat history, and create, read or append cloud documents through your own self-built Feishu app.
+  zh: 飞书（Lark）工具集：通过企业自建应用发送群消息、读取聊天记录，并创建、读取、追加云文档。
+
+# 可选：预构建 tgz 挂在 GitHub Release 时（assets 名不带版本号更稳）
+# tarball: https://github.com/2286893544/feishu-dsh-plugin/releases/latest/download/dsh-plugin-feishu.tgz

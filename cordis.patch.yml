@@ -1,0 +1,3 @@
+- insert:
+    - id: feishu-bridge
+      name: dsh-plugin-feishu

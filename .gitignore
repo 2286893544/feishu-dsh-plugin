@@ -1,0 +1,9 @@
+node_modules/
+*.tgz
+*.log
+.DS_Store
+_private/
+*.pyc
+legacy-python/__pycache__/
+legacy-python/output/
+legacy-python/

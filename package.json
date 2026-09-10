@@ -1,0 +1,49 @@
+{
+  "name": "dsh-plugin-feishu",
+  "version": "0.1.0",
+  "description": "Feishu (Lark) tools for DeepSeek Harness: send messages, read chat history, create/read/append Feishu documents, and grant document access.",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "assets",
+    "cordis.patch.yml"
+  ],
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "feishu",
+    "lark",
+    "docs",
+    "chat",
+    "bot"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/2286893544/feishu-dsh-plugin.git"
+  },
+  "homepage": "https://github.com/2286893544/feishu-dsh-plugin#readme",
+  "bugs": {
+    "url": "https://github.com/2286893544/feishu-dsh-plugin/issues"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-skill": "^0.1.2-alpha.1",
+    "@deepseek-ai/dsh-tools": "^0.1.2-alpha.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
