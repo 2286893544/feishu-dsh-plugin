@@ -1,10 +1,10 @@
 // Client half of the Feishu plugin UI.
 //
-// Registers one slot: `settings.section`, the dedicated "飞书（Feishu）" page in the
-// settings sidebar (the same slot community plugins such as the side card use).
-// It writes into the `feishu-bridge` settings namespace registered by
-// lib/settings.js, so a saved edit reaches the running plugin without a restart.
-// The Plugins-tab card was deliberately dropped: one configuration surface, not two.
+// Registers two slots with the same credentials form:
+//   settings.section     -> a dedicated "飞书（Feishu）" page in the settings sidebar
+//   settings.plugin.item -> a card inside Settings → Plugins → Plugin configuration
+// Both write into the `feishu-bridge` settings namespace registered by lib/settings.js,
+// so a saved edit reaches the running plugin without a restart.
 //
 // Plain browser bundle — no build step. The harness loads client plugins through the
 // module loader below and calls `apply(ctx)` with the client context.
@@ -28,6 +28,9 @@ window.__ModuleLoader__.load({
       { key: "appSecret", label: "应用密钥（appSecret）", secret: true, placeholder: "未配置" },
       { key: "tenantDomain", label: "企业域名（可选）", placeholder: "留空自动探测，例如 your-tenant.feishu.cn" },
       { key: "defaultChatId", label: "默认群 chat_id（可选）", placeholder: "oc_xxxxxxxxxxxx（会话工具不传 chat_id 时使用）" },
+      { key: "grantOpenId", label: "自动授权 open_id（可选）", placeholder: "ou_xxxxxxxxxxxx（新建文档/多维表格时自动授予全部权限）" },
+      { key: "wikiSpaceId", label: "知识库 space_id（可选）", placeholder: "填了就默认把新文档建到知识库里，返回 /wiki/ 地址" },
+      { key: "wikiParentNodeToken", label: "知识库父节点 token（可选）", placeholder: "留空则建在知识库根目录" },
     ];
 
     const TOOL_GROUPS = [
@@ -99,7 +102,7 @@ window.__ModuleLoader__.load({
 
       React.useEffect(() => {
         setDrafts(draftsFrom(value));
-      }, [snapshot?.revision, value.appId, value.tenantDomain, value.defaultChatId]);
+      }, [snapshot?.revision, value.appId, value.tenantDomain, value.defaultChatId, value.grantOpenId, value.wikiSpaceId, value.wikiParentNodeToken]);
 
       const setDraft = (key, text) => setDrafts((current) => ({ ...current, [key]: text }));
 
