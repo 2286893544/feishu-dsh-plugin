@@ -1,10 +1,10 @@
 // Client half of the Feishu plugin UI.
 //
-// Registers two slots with the same credentials form:
-//   settings.section     -> a dedicated "飞书（Feishu）" page in the settings sidebar
-//   settings.plugin.item -> a card inside Settings → Plugins → Plugin configuration
-// Both write into the `feishu-bridge` settings namespace registered by lib/settings.js,
-// so a saved edit reaches the running plugin without a restart.
+// Registers one slot: `settings.section`, the dedicated "飞书（Feishu）" page in the
+// settings sidebar (the same slot community plugins such as the side card use).
+// It writes into the `feishu-bridge` settings namespace registered by
+// lib/settings.js, so a saved edit reaches the running plugin without a restart.
+// The Plugins-tab card was deliberately dropped: one configuration surface, not two.
 //
 // Plain browser bundle — no build step. The harness loads client plugins through the
 // module loader below and calls `apply(ctx)` with the client context.
@@ -25,7 +25,7 @@ window.__ModuleLoader__.load({
 
     const FIELDS = [
       { key: "appId", label: "应用 ID（appId）", placeholder: "cli_xxxxxxxxxxxx" },
-      { key: "appSecret", label: "应用密钥（appSecret）", secret: true, placeholder: "未配置" },
+      { key: "appSecret", label: "应用密钥（appSecret）", secret: true, placeholder: "已保存的密钥不会回显" },
       { key: "tenantDomain", label: "企业域名（可选）", placeholder: "留空自动探测，例如 your-tenant.feishu.cn" },
       { key: "defaultChatId", label: "默认群 chat_id（可选）", placeholder: "oc_xxxxxxxxxxxx（会话工具不传 chat_id 时使用）" },
       { key: "grantOpenId", label: "自动授权 open_id（可选）", placeholder: "ou_xxxxxxxxxxxx（新建文档/多维表格时自动授予全部权限）" },
@@ -35,7 +35,7 @@ window.__ModuleLoader__.load({
 
     const TOOL_GROUPS = [
       { title: "会话与消息", count: 6, tools: "list_chats / list_chat_members / send_text / send_post_message / read_chat_history / recall_message" },
-      { title: "云文档 docx", count: 9, tools: "create_document / read_document / read_document_blocks / append_document_blocks / update_document_block / delete_document_block / insert_table_into_document / insert_image_into_document / insert_chart_into_document" },
+      { title: "云文档 docx", count: 10, tools: "create_document / read_document / read_document_blocks / append_document_blocks / update_document_block / delete_document_block / insert_table_into_document / insert_image_into_document / insert_chart_into_document / resolve_wiki_node" },
       { title: "多维表格 bitable", count: 5, tools: "create_bitable / list_bitable_tables / list_bitable_fields / write_bitable_record / read_bitable_records" },
       { title: "电子表格 sheets", count: 2, tools: "read_sheet_range / write_sheet_range（经典 v2 区间接口）" },
       { title: "权限", count: 2, tools: "grant_document_access / set_document_link_sharing" },
@@ -256,7 +256,7 @@ window.__ModuleLoader__.load({
         h(
           "div",
           { style: { display: "flex", flexDirection: "column", gap: "8px" } },
-          h("div", { style: { fontSize: "14px", fontWeight: 600 } }, "工具清单（共 24 个）"),
+          h("div", { style: { fontSize: "14px", fontWeight: 600 } }, "工具清单（共 25 个）"),
           ...TOOL_GROUPS.map((group) =>
             h(
               "div",

@@ -1,6 +1,6 @@
 # dsh-plugin-feishu
 
-Feishu (Lark) tools for DeepSeek Harness: **24 `feishu_*` tools** covering chat
+Feishu (Lark) tools for DeepSeek Harness: **25 `feishu_*` tools** covering chat
 messages, cloud documents (including images, generated charts and tables),
 bitable records, spreadsheet ranges and drive permissions — through your own
 enterprise self-built Feishu app. Pure Node, no external dependencies, no Python.
@@ -26,6 +26,9 @@ saved change applies immediately:
 | `appSecret` | Feishu app secret — declared `role("secret")`, so it is redacted from every page read and shown as a password control that starts blank |
 | `tenantDomain` | Optional (`acme.feishu.cn`); auto-detected from the tenant API when empty |
 | `defaultChatId` | Optional (`oc_...`) used by the chat tools when a call omits `chat_id` |
+| `grantOpenId` | Optional (`ou_...`) — every document/bitable the plugin creates is shared with this user (`full_access`), so the person operating the bot keeps control of what the bot made |
+| `wikiSpaceId` | Optional knowledge-base space id; when set, new documents are created **inside that knowledge base** and the returned URL is a `/wiki/` link |
+| `wikiParentNodeToken` | Optional default parent node for new wiki documents (empty means the knowledge-base root) |
 
 On a host without a settings service the card is simply absent and the composed
 configuration stands. Both fallbacks remain: the profile patch entry
@@ -39,7 +42,7 @@ app name, the tenant name and domain, a masked key fingerprint
 (`pkQi…E2h (len 32)`) and which configuration layers supplied the values. The raw
 secret never leaves the host, and the route refuses GETs and cross-origin calls.
 
-## Tools (24)
+## Tools (25)
 
 **Chat & messages** — `feishu_list_chats`, `feishu_list_chat_members`,
 `feishu_send_text`, `feishu_send_post_message`, `feishu_read_chat_history`,
@@ -49,7 +52,7 @@ secret never leaves the host, and the route refuses GETs and cross-origin calls.
 `feishu_read_document_blocks`, `feishu_append_document_blocks`,
 `feishu_update_document_block`, `feishu_delete_document_block`,
 `feishu_insert_table_into_document`, `feishu_insert_image_into_document`,
-`feishu_insert_chart_into_document`
+`feishu_insert_chart_into_document`, `feishu_resolve_wiki_node`
 
 **Bitable** — `feishu_create_bitable`, `feishu_list_bitable_tables`,
 `feishu_list_bitable_fields`, `feishu_write_bitable_record`,
@@ -58,7 +61,8 @@ secret never leaves the host, and the route refuses GETs and cross-origin calls.
 **Sheets (classic v2 range API)** — `feishu_read_sheet_range`,
 `feishu_write_sheet_range`
 
-**Permissions** — `feishu_grant_document_access`
+**Permissions** — `feishu_grant_document_access`,
+`feishu_set_document_link_sharing`
 
 A bundled `feishu` skill documents the workflows and known limits for the agent.
 
@@ -84,7 +88,7 @@ A bundled `feishu` skill documents the workflows and known limits for the agent.
 ## Development
 
 ```sh
-node scripts/verify-registration.mjs   # offline: registers 24 tools + skill, renders a chart
+node scripts/verify-registration.mjs   # offline: registers 25 tools + skill, renders a chart
 node scripts/smoke.mjs                 # live API check (needs credentials; optional doc id)
 ```
 

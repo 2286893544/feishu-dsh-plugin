@@ -146,8 +146,8 @@ function collectInputs(node, found) {
 }
 
 const inputs = collectInputs(renderTree(section), []);
-if (inputs.length !== 4) {
-  console.error("settings.section: expected 4 configuration inputs, got", inputs.length);
+if (inputs.length !== 7) {
+  console.error("settings.section: expected 7 configuration inputs, got", inputs.length);
   process.exit(1);
 }
 

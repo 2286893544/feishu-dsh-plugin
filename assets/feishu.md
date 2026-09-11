@@ -1,6 +1,6 @@
 # feishu — Feishu (Lark) 云文档 / 多维表格 / 电子表格 / 消息
 
-本技能启用插件的 24 个 `feishu_*` 工具，通过企业自建应用操作飞书开放平台。
+本技能启用插件的 25 个 `feishu_*` 工具，通过企业自建应用操作飞书开放平台。
 纯 Node 实现（无外部依赖），不需要 Python 或本地脚本。
 
 ## 工具清单（与插件描述、代码严格一致）
@@ -27,6 +27,7 @@
 | `feishu_insert_table_into_document` | 插入 N×M 空表格 |
 | `feishu_insert_image_into_document` | 插入图片：本地路径 / https URL / base64 |
 | `feishu_insert_chart_into_document` | 本地渲染柱状图并插入文档（标题与分类标签仅支持 ASCII） |
+| `feishu_resolve_wiki_node` | 把知识库节点 token / `/wiki/` 链接解析成 document_id，便于后续读写 |
 
 **多维表格 bitable**
 | 工具 | 作用 |
@@ -55,6 +56,9 @@
 - `appSecret`：应用密钥，标记为 `role("secret")`，界面用密码框显示，远程读取时会被脱敏
 - `tenantDomain`：**可选**。留空时插件自动调企业信息接口获取域名，用于拼文档/表格分享链接
 - `defaultChatId`：**可选**。会话类工具不传 `chat_id` 时使用该默认群
+- `grantOpenId`：**可选**。插件新建的每个文档/多维表格都会自动授予该 open_id 全部权限——让操作机器人的人真正"拥有"机器人创建的东西
+- `wikiSpaceId`：**可选**。填了之后 `feishu_create_document` 默认把文档建到该知识库里，并返回 `/wiki/` 链接（传 `standalone=true` 可仍建在应用云空间）
+- `wikiParentNodeToken`：**可选**。知识库内新建文档的默认父节点，留空即根目录
 - 无界面场景可用环境变量 `FEISHU_APP_ID` / `FEISHU_APP_SECRET` / `FEISHU_TENANT_DOMAIN`
 - 页面上的**「测试连接」**按钮会用已保存的凭据真实调一次飞书接口，返回应用名、企业域名、密钥掩码指纹与配置来源；失败时给出具体错误码（如 10003 = App ID 与密钥不匹配）。密钥不会离开宿主，也不会回显到页面。
 - 权限前提：应用已开通并发布相应 scope（读群历史 `im:message.group_msg`、docx 读写、bitable、sheets、drive 授权等），机器人需在目标群内

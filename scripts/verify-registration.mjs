@@ -51,6 +51,7 @@ const expected = [
   "feishu_read_document_blocks",
   "feishu_read_sheet_range",
   "feishu_recall_message",
+  "feishu_resolve_wiki_node",
   "feishu_send_post_message",
   "feishu_send_text",
   "feishu_set_document_link_sharing",
@@ -133,9 +134,18 @@ if (entry.appId !== "cli_test_only") {
   process.exit(1);
 }
 const settingsText = JSON.stringify(FeishuSettings?.toString?.() ?? "");
-if (!settingsText.includes("appSecret")) {
-  console.error("settings schema does not declare appSecret");
-  process.exit(1);
+for (const field of ["appSecret", "grantOpenId", "wikiSpaceId", "wikiParentNodeToken"]) {
+  if (!settingsText.includes(field)) {
+    console.error("settings schema does not declare", field);
+    process.exit(1);
+  }
+}
+const configText = JSON.stringify(Config?.toString?.() ?? "");
+for (const field of ["appId", "appSecret", "tenantDomain", "defaultChatId", "grantOpenId", "wikiSpaceId", "wikiParentNodeToken"]) {
+  if (!configText.includes(field)) {
+    console.error("Config schema is missing", field);
+    process.exit(1);
+  }
 }
 
 // ---------- host HTTP route behind the settings page's 测试连接 button ----------
